@@ -33,7 +33,7 @@ void main() async {
     return true;
   }
 
-  await WebsocketPingValidator.connectWebSocket(url,
+  final webSocketConnection = await WebsocketPingValidator.connectWebSocket(url,
       onMessage: (message) async {
     ///MESSAGE RECEIVED FROM SERVER
   }, onConnected: (dateTimeConnected) async {
@@ -53,4 +53,7 @@ void main() async {
       reconnectOnError: reconnectOnError,
       dataToSendAsPing: dataToSendAsPing,
       validateIfCanMakeConnection: validateIfCanMakeConnection());
+
+  ///YOU CAN CLOSE THE CONNECTION OR OPEN MORE
+  await webSocketConnection.close();
 }

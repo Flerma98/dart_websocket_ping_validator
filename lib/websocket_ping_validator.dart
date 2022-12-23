@@ -3,8 +3,10 @@ library websocket_ping_validator;
 import 'dart:async';
 import 'dart:io';
 
+import 'package:websocket_ping_validator/utilities/error_status_code.dart';
+
 abstract class WebsocketPingValidator {
-  static Future<void> connectWebSocket(final String url,
+  static Future<WebSocket> connectWebSocket(final String url,
       {required final Function(dynamic) onMessage,
       final Function(DateTime)? onConnected,
       final Function(Object)? onError,
@@ -17,11 +19,14 @@ abstract class WebsocketPingValidator {
       final Duration periodicDurationToPing = const Duration(seconds: 3),
       final Duration reconnectIn = const Duration(seconds: 3),
       final bool validateIfCanMakeConnection = true}) async {
-    try {
-      if (!validateIfCanMakeConnection) return;
+    if (!validateIfCanMakeConnection) {
+      throw ErrorStatusCode.validateIfCanMakeConnectionUnfulfilled;
+    }
 
-      int retry = 1;
-      final webSocketConnection = await WebSocket.connect(url);
+    int retry = 1;
+    final webSocketConnection = await WebSocket.connect(url);
+
+    try {
       if (onConnected != null) await onConnected(DateTime.now());
       webSocketConnection.listen((message) async {
         retry = 1;
@@ -54,6 +59,11 @@ abstract class WebsocketPingValidator {
       if (dataToSendAsPing != null) {
         Timer.periodic(periodicDurationToPing, (timer) async {
           try {
+            if (webSocketConnection.closeCode != null) {
+              timer.cancel();
+              return;
+            }
+
             webSocketConnection.add(dataToSendAsPing);
             if (retry >= maxAttempts) {
               timer.cancel();
@@ -86,7 +96,7 @@ abstract class WebsocketPingValidator {
         await onError(error);
       }
       if (reconnectOnError) {
-        await _reconnect(url,
+        return await _reconnect(url,
             onMessage: onMessage,
             onConnected: onConnected,
             onError: onError,
@@ -100,9 +110,10 @@ abstract class WebsocketPingValidator {
             reconnectIn: reconnectIn);
       }
     }
+    return webSocketConnection;
   }
 
-  static Future<void> _reconnect(final String url,
+  static Future<WebSocket> _reconnect(final String url,
       {required final Function(dynamic) onMessage,
       final Function(DateTime)? onConnected,
       final Function(Object)? onError,
@@ -118,7 +129,7 @@ abstract class WebsocketPingValidator {
       await onReconnectStarted(reconnectIn);
     }
     await Future.delayed(reconnectIn);
-    await connectWebSocket(url,
+    return await connectWebSocket(url,
         onMessage: onMessage,
         onConnected: onConnected,
         onError: onError,
