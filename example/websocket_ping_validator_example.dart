@@ -27,6 +27,12 @@ void main() async {
   ///IS DURATION OF TIME TO RECONNECT THE WEBSOCKET
   const reconnectIn = Duration(seconds: 3);
 
+  ///Type: bool (or a function with bool value)
+  ///IS A CUSTOM VALIDATION TO CONNECT THE WEBSOCKET
+  bool validateIfCanMakeConnection() {
+    return true;
+  }
+
   await WebsocketPingValidator.connectWebSocket(url,
       onMessage: (message) async {
     ///MESSAGE RECEIVED FROM SERVER
@@ -45,5 +51,6 @@ void main() async {
       periodicDurationToPing: periodicDurationToPing,
       reconnectIn: reconnectIn,
       reconnectOnError: reconnectOnError,
-      dataToSendAsPing: dataToSendAsPing);
+      dataToSendAsPing: dataToSendAsPing,
+      validateIfCanMakeConnection: validateIfCanMakeConnection());
 }

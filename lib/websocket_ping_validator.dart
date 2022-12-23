@@ -15,8 +15,11 @@ abstract class WebsocketPingValidator {
       required final dynamic dataToSendAsPing,
       final int maxAttempts = 5,
       final Duration periodicDurationToPing = const Duration(seconds: 3),
-      final Duration reconnectIn = const Duration(seconds: 3)}) async {
+      final Duration reconnectIn = const Duration(seconds: 3),
+      final bool validateIfCanMakeConnection = true}) async {
     try {
+      if (!validateIfCanMakeConnection) return;
+
       int retry = 1;
       final webSocketConnection = await WebSocket.connect(url);
       if (onConnected != null) await onConnected(DateTime.now());
