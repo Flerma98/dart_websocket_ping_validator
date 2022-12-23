@@ -1,3 +1,6 @@
+## 1.0.4
+- Attempts fixed.
+
 ## 1.0.3
 - Now you can run multiple times or close a specific connection catching the instance.
 

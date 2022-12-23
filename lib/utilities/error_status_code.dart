@@ -1,3 +1,1 @@
-enum ErrorStatusCode {
-  validateIfCanMakeConnectionUnfulfilled
-}
+enum ErrorStatusCode { validateIfCanMakeConnectionUnfulfilled }

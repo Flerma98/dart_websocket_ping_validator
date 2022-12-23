@@ -11,6 +11,7 @@ abstract class WebsocketPingValidator {
       final Function(DateTime)? onConnected,
       final Function(Object)? onError,
       final Function(int)? onConnectionClosed,
+      final Function(int)? onAttemptChanged,
       final Function? onConnectionLost,
       final Function(Duration)? onReconnectStarted,
       required final bool reconnectOnError,
@@ -23,13 +24,13 @@ abstract class WebsocketPingValidator {
       throw ErrorStatusCode.validateIfCanMakeConnectionUnfulfilled;
     }
 
-    int retry = 1;
-    final webSocketConnection = await WebSocket.connect(url);
-
     try {
+      int attempt = 1;
+      WebSocket webSocketConnection = await WebSocket.connect(url);
+
       if (onConnected != null) await onConnected(DateTime.now());
       webSocketConnection.listen((message) async {
-        retry = 1;
+        attempt = 1;
         await onMessage(message);
       }, onError: (error) async {
         if (onError != null) {
@@ -59,19 +60,19 @@ abstract class WebsocketPingValidator {
       if (dataToSendAsPing != null) {
         Timer.periodic(periodicDurationToPing, (timer) async {
           try {
-            if (webSocketConnection.closeCode != null) {
-              timer.cancel();
-              return;
+            if (onAttemptChanged != null) {
+              await onAttemptChanged(attempt);
             }
 
             webSocketConnection.add(dataToSendAsPing);
-            if (retry >= maxAttempts) {
+
+            if (attempt >= maxAttempts) {
               timer.cancel();
               if (onConnectionLost != null) {
                 await onConnectionLost();
               }
               await webSocketConnection.close();
-              await _reconnect(url,
+              webSocketConnection = await _reconnect(url,
                   onMessage: onMessage,
                   onConnected: onConnected,
                   onError: onError,
@@ -85,12 +86,15 @@ abstract class WebsocketPingValidator {
                   reconnectIn: reconnectIn);
               return;
             }
-            retry += 1;
           } catch (error) {
-            ///IGNORE
+            if (onError != null) {
+              await onError(error);
+            }
           }
+          attempt = attempt += 1;
         });
       }
+      return webSocketConnection;
     } catch (error) {
       if (onError != null) {
         await onError(error);
@@ -109,8 +113,8 @@ abstract class WebsocketPingValidator {
             periodicDurationToPing: periodicDurationToPing,
             reconnectIn: reconnectIn);
       }
+      rethrow;
     }
-    return webSocketConnection;
   }
 
   static Future<WebSocket> _reconnect(final String url,
