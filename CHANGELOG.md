@@ -1,3 +1,6 @@
+## 1.0.5
+- On new instance callback created.
+
 ## 1.0.4
 - Attempts fixed.
 

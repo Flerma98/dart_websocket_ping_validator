@@ -4,91 +4,61 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:websocket_ping_validator/utilities/error_status_code.dart';
+import 'package:websocket_ping_validator/utilities/properties.dart';
 
 abstract class WebsocketPingValidator {
   static Future<WebSocket> connectWebSocket(final String url,
-      {required final Function(dynamic) onMessage,
-      final Function(DateTime)? onConnected,
-      final Function(Object)? onError,
-      final Function(int)? onConnectionClosed,
-      final Function(int)? onAttemptChanged,
-      final Function? onConnectionLost,
-      final Function(Duration)? onReconnectStarted,
-      required final bool reconnectOnError,
-      required final dynamic dataToSendAsPing,
-      final int maxAttempts = 5,
-      final Duration periodicDurationToPing = const Duration(seconds: 3),
-      final Duration reconnectIn = const Duration(seconds: 3),
-      final bool validateIfCanMakeConnection = true}) async {
-    if (!validateIfCanMakeConnection) {
+      {required final WebSocketPingValidatorProperties properties}) async {
+    if (!properties.validateIfCanMakeConnection) {
       throw ErrorStatusCode.validateIfCanMakeConnectionUnfulfilled;
     }
 
     try {
       int attempt = 1;
-      WebSocket webSocketConnection = await WebSocket.connect(url);
+      final webSocketConnection = await WebSocket.connect(url);
 
-      if (onConnected != null) await onConnected(DateTime.now());
+      if (properties.onConnected != null) {
+        await properties.onConnected!(DateTime.now());
+      }
       webSocketConnection.listen((message) async {
         attempt = 1;
-        await onMessage(message);
+        await properties.onMessage(message);
       }, onError: (error) async {
-        if (onError != null) {
-          await onError(error);
+        if (properties.onError != null) {
+          await properties.onError!(error);
         }
-        if (reconnectOnError) {
-          await _reconnect(url,
-              onMessage: onMessage,
-              onConnected: onConnected,
-              onError: onError,
-              onConnectionClosed: onConnectionClosed,
-              onConnectionLost: onConnectionLost,
-              onReconnectStarted: onReconnectStarted,
-              reconnectOnError: reconnectOnError,
-              dataToSendAsPing: dataToSendAsPing,
-              maxAttempts: maxAttempts,
-              periodicDurationToPing: periodicDurationToPing,
-              reconnectIn: reconnectIn);
+        if (properties.reconnectOnError) {
+          await _reconnect(url, properties: properties);
         }
       }, onDone: () async {
-        if (onConnectionClosed != null) {
-          await onConnectionClosed(
+        if (properties.onConnectionClosed != null) {
+          await properties.onConnectionClosed!(
               webSocketConnection.closeCode ?? WebSocketStatus.normalClosure);
         }
       }, cancelOnError: true);
 
-      if (dataToSendAsPing != null) {
-        Timer.periodic(periodicDurationToPing, (timer) async {
+      if (properties.dataToSendAsPing != null) {
+        Timer.periodic(properties.periodicDurationToPing, (timer) async {
           try {
-            if (onAttemptChanged != null) {
-              await onAttemptChanged(attempt);
+            if (properties.onAttemptChanged != null) {
+              await properties.onAttemptChanged!(attempt);
             }
 
-            webSocketConnection.add(dataToSendAsPing);
+            webSocketConnection.add(properties.dataToSendAsPing);
 
-            if (attempt >= maxAttempts) {
+            if (attempt >= properties.maxAttempts) {
               timer.cancel();
-              if (onConnectionLost != null) {
-                await onConnectionLost();
+              if (properties.onConnectionLost != null) {
+                await properties.onConnectionLost!();
               }
               await webSocketConnection.close();
-              webSocketConnection = await _reconnect(url,
-                  onMessage: onMessage,
-                  onConnected: onConnected,
-                  onError: onError,
-                  onConnectionClosed: onConnectionClosed,
-                  onConnectionLost: onConnectionLost,
-                  onReconnectStarted: onReconnectStarted,
-                  reconnectOnError: reconnectOnError,
-                  dataToSendAsPing: dataToSendAsPing,
-                  maxAttempts: maxAttempts,
-                  periodicDurationToPing: periodicDurationToPing,
-                  reconnectIn: reconnectIn);
+              await properties.onNewInstanceCreated(
+                  await _reconnect(url, properties: properties));
               return;
             }
           } catch (error) {
-            if (onError != null) {
-              await onError(error);
+            if (properties.onError != null) {
+              await properties.onError!(error);
             }
           }
           attempt = attempt += 1;
@@ -96,54 +66,22 @@ abstract class WebsocketPingValidator {
       }
       return webSocketConnection;
     } catch (error) {
-      if (onError != null) {
-        await onError(error);
+      if (properties.onError != null) {
+        await properties.onError!(error);
       }
-      if (reconnectOnError) {
-        return await _reconnect(url,
-            onMessage: onMessage,
-            onConnected: onConnected,
-            onError: onError,
-            onConnectionClosed: onConnectionClosed,
-            onConnectionLost: onConnectionLost,
-            onReconnectStarted: onReconnectStarted,
-            reconnectOnError: reconnectOnError,
-            dataToSendAsPing: dataToSendAsPing,
-            maxAttempts: maxAttempts,
-            periodicDurationToPing: periodicDurationToPing,
-            reconnectIn: reconnectIn);
+      if (properties.reconnectOnError) {
+        return await _reconnect(url, properties: properties);
       }
       rethrow;
     }
   }
 
   static Future<WebSocket> _reconnect(final String url,
-      {required final Function(dynamic) onMessage,
-      final Function(DateTime)? onConnected,
-      final Function(Object)? onError,
-      final Function(int)? onConnectionClosed,
-      final Function? onConnectionLost,
-      final Function(Duration)? onReconnectStarted,
-      required final bool reconnectOnError,
-      required final dynamic dataToSendAsPing,
-      final int maxAttempts = 5,
-      final Duration periodicDurationToPing = const Duration(seconds: 3),
-      final Duration reconnectIn = const Duration(seconds: 3)}) async {
-    if (onReconnectStarted != null) {
-      await onReconnectStarted(reconnectIn);
+      {required final WebSocketPingValidatorProperties properties}) async {
+    if (properties.onReconnectStarted != null) {
+      await properties.onReconnectStarted!(properties.reconnectIn);
     }
-    await Future.delayed(reconnectIn);
-    return await connectWebSocket(url,
-        onMessage: onMessage,
-        onConnected: onConnected,
-        onError: onError,
-        onConnectionClosed: onConnectionClosed,
-        onConnectionLost: onConnectionLost,
-        onReconnectStarted: onReconnectStarted,
-        reconnectOnError: reconnectOnError,
-        dataToSendAsPing: dataToSendAsPing,
-        maxAttempts: maxAttempts,
-        periodicDurationToPing: periodicDurationToPing,
-        reconnectIn: reconnectIn);
+    await Future.delayed(properties.reconnectIn);
+    return await connectWebSocket(url, properties: properties);
   }
 }

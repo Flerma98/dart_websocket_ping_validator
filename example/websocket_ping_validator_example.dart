@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:websocket_ping_validator/utilities/properties.dart';
 import 'package:websocket_ping_validator/websocket_ping_validator.dart';
 
 void main() async {
@@ -34,25 +35,34 @@ void main() async {
   }
 
   final webSocketConnection = await WebsocketPingValidator.connectWebSocket(url,
-      onMessage: (message) async {
-    ///MESSAGE RECEIVED FROM SERVER
-  }, onConnected: (dateTimeConnected) async {
-    ///WEBSOCKET CONNECTED (YOU RECEIVE THE SPECIFIC DateTime WHEN THE CONNECTION OCCURRED)
-  }, onConnectionClosed: (statusCode) async {
-    ///WEBSOCKET DISCONNECTED (YOU RECEIVE THE SPECIFIC StatusCode IN int WHEN THE DISCONNECTION OCCURRED)
-  }, onConnectionLost: () async {
-    ///WEBSOCKET HAVE LOST THEIR CONNECTION
-  }, onError: (error) async {
-    ///WEBSOCKET HAVE OCCURRED AN ERROR (YOU RECEIVED IT)
-  }, onReconnectStarted: (duration) async {
-    ///FUNCTION BEFORE START RECONNECTION COUNT DOWN
-  },
-      maxAttempts: maxAttempts,
-      periodicDurationToPing: periodicDurationToPing,
-      reconnectIn: reconnectIn,
-      reconnectOnError: reconnectOnError,
-      dataToSendAsPing: dataToSendAsPing,
-      validateIfCanMakeConnection: validateIfCanMakeConnection());
+      properties: WebSocketPingValidatorProperties(
+          onMessage: (message) async {
+            ///MESSAGE RECEIVED FROM SERVER
+          },
+          onConnected: (dateTimeConnected) async {
+            ///WEBSOCKET CONNECTED (YOU RECEIVE THE SPECIFIC DateTime WHEN THE CONNECTION OCCURRED)
+          },
+          onConnectionClosed: (statusCode) async {
+            ///WEBSOCKET DISCONNECTED (YOU RECEIVE THE SPECIFIC StatusCode IN int WHEN THE DISCONNECTION OCCURRED)
+          },
+          onConnectionLost: () async {
+            ///WEBSOCKET HAVE LOST THEIR CONNECTION
+          },
+          onError: (error) async {
+            ///WEBSOCKET HAVE OCCURRED AN ERROR (YOU RECEIVED IT)
+          },
+          onReconnectStarted: (duration) async {
+            ///FUNCTION BEFORE START RECONNECTION COUNT DOWN
+          },
+          maxAttempts: maxAttempts,
+          periodicDurationToPing: periodicDurationToPing,
+          reconnectIn: reconnectIn,
+          reconnectOnError: reconnectOnError,
+          dataToSendAsPing: dataToSendAsPing,
+          validateIfCanMakeConnection: validateIfCanMakeConnection(),
+          onNewInstanceCreated: (newWebSocketInstance) {
+            ///FUNCTION AFTER CHANGE THE ORIGINAL WEBSOCKET INSTANCE
+          }));
 
   ///YOU CAN CLOSE THE CONNECTION OR OPEN MORE
   await webSocketConnection.close();
