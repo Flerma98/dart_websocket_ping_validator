@@ -1,3 +1,6 @@
+## 1.0.6
+- On new instance fixed stopping previews instance.
+
 ## 1.0.5
 - On new instance callback created.
 

@@ -1,6 +1,6 @@
 name: websocket_ping_validator
 description: A dart package to use websockets and check the connection
-version: 1.0.5
+version: 1.0.6
 homepage: https://github.com/Flerma98
 repository: https://github.com/Flerma98/dart_websocket_ping_validator
 issue_tracker: https://github.com/Flerma98/dart_websocket_ping_validator
