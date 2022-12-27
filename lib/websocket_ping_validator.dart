@@ -49,9 +49,7 @@ abstract class WebsocketPingValidator {
               await properties.onAttemptChanged!(attempt);
             }
 
-            if (webSocketConnection.closeCode == null) {
-              webSocketConnection.add(properties.dataToSendAsPing);
-            }
+            webSocketConnection.add(properties.dataToSendAsPing);
 
             if (attempt >= properties.maxAttempts) {
               timer.cancel();
@@ -59,9 +57,7 @@ abstract class WebsocketPingValidator {
                 await properties.onConnectionLost!();
               }
 
-              if (webSocketConnection.closeCode == null) {
-                await webSocketConnection.close();
-              }
+              await webSocketConnection.close();
 
               await properties.onNewInstanceCreated(
                   await _reconnect(url, properties: properties));
