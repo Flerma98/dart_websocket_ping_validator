@@ -1,3 +1,6 @@
+## 1.0.7
+- Now the library is using native ping/pong environment.
+
 ## 1.0.6
 - On new instance fixed stopping previews instance.
 

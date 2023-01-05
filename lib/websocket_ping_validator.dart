@@ -14,16 +14,14 @@ abstract class WebsocketPingValidator {
     }
 
     try {
-      int attempt = 1;
       final webSocketConnection = await WebSocket.connect(url);
+
+      webSocketConnection.pingInterval = properties.periodicDurationToMakePing;
 
       if (properties.onConnected != null) {
         await properties.onConnected!(DateTime.now());
       }
-      webSocketConnection.listen((message) async {
-        attempt = 1;
-        await properties.onMessage(message);
-      }, onError: (error) async {
+      webSocketConnection.listen(properties.onMessage, onError: (error) async {
         if (properties.onError != null) {
           await properties.onError!(error);
         }
@@ -31,62 +29,24 @@ abstract class WebsocketPingValidator {
           await _reconnect(url, properties: properties);
         }
       }, onDone: () async {
+        final closeCode =
+            webSocketConnection.closeCode ?? WebSocketStatus.normalClosure;
+        if (properties.reconnectOnConnectionLost &&
+            closeCode == WebSocketStatus.goingAway) {
+          if (properties.onConnectionLost != null) {
+            await properties.onConnectionLost!();
+          }
+
+          await webSocketConnection.close();
+
+          await properties.onNewInstanceCreated(
+              await _reconnect(url, properties: properties));
+          return;
+        }
         if (properties.onConnectionClosed != null) {
-          await properties.onConnectionClosed!(
-              webSocketConnection.closeCode ?? WebSocketStatus.normalClosure);
+          await properties.onConnectionClosed!(closeCode);
         }
       }, cancelOnError: true);
-
-      if (properties.dataToSendAsPing != null) {
-        Timer.periodic(properties.periodicDurationToPing, (timer) async {
-          try {
-            if (webSocketConnection.closeCode != null) {
-              timer.cancel();
-              return;
-            }
-
-            if (properties.onAttemptChanged != null) {
-              await properties.onAttemptChanged!(attempt);
-            }
-
-            webSocketConnection.add(properties.dataToSendAsPing);
-
-            if (attempt >= properties.maxAttempts) {
-              timer.cancel();
-              if (properties.onConnectionLost != null) {
-                await properties.onConnectionLost!();
-              }
-
-              await webSocketConnection.close();
-
-              await properties.onNewInstanceCreated(
-                  await _reconnect(url, properties: properties));
-              return;
-            }
-          } catch (error) {
-            timer.cancel();
-
-            if (properties.onError != null) {
-              await properties.onError!(error);
-            }
-
-            if (properties.onConnectionLost != null) {
-              await properties.onConnectionLost!();
-            }
-
-            if (webSocketConnection.closeCode == null) {
-              await webSocketConnection.close();
-            }
-
-            if (properties.reconnectOnError) {
-              await properties.onNewInstanceCreated(
-                  await _reconnect(url, properties: properties));
-            }
-            return;
-          }
-          attempt = attempt += 1;
-        });
-      }
       return webSocketConnection;
     } catch (error) {
       if (properties.onError != null) {

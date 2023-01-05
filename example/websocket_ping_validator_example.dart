@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:websocket_ping_validator/utilities/properties.dart';
 import 'package:websocket_ping_validator/websocket_ping_validator.dart';
 
@@ -12,17 +10,13 @@ void main() async {
   ///VARIABLE SPECIFICITIES IF YOU WANT TO RECONNECT WHEN A ERROR HAVE OCCURRED
   const reconnectOnError = true;
 
-  ///Type: dynamic (NOT NULL)
-  ///IS THE DATA SENT TO SERVER TO MAKE A PING
-  final dataToSendAsPing = Uint8List.fromList([0]);
-
-  ///Type: int
-  ///IS THE MAX COUNT OF ATTEMPTS TO MAKE A PING
-  const maxAttempts = 5;
+  ///Type: bool
+  ///VARIABLE SPECIFICITIES IF YOU WANT TO RECONNECT WHEN THE CONNECTION WAS BE INTERRUPTED
+  const reconnectOnConnectionLost = true;
 
   ///Type: Duration
   ///IS DURATION OF TIME TO MAKE A PING
-  const periodicDurationToPing = Duration(seconds: 3);
+  const periodicDurationToMakePing = Duration(seconds: 3);
 
   ///Type: Duration
   ///IS DURATION OF TIME TO RECONNECT THE WEBSOCKET
@@ -54,11 +48,10 @@ void main() async {
           onReconnectStarted: (duration) async {
             ///FUNCTION BEFORE START RECONNECTION COUNT DOWN
           },
-          maxAttempts: maxAttempts,
-          periodicDurationToPing: periodicDurationToPing,
+          periodicDurationToMakePing: periodicDurationToMakePing,
           reconnectIn: reconnectIn,
           reconnectOnError: reconnectOnError,
-          dataToSendAsPing: dataToSendAsPing,
+          reconnectOnConnectionLost: reconnectOnConnectionLost,
           validateIfCanMakeConnection: validateIfCanMakeConnection(),
           onNewInstanceCreated: (newWebSocketInstance) {
             ///FUNCTION AFTER CHANGE THE ORIGINAL WEBSOCKET INSTANCE
