@@ -1,3 +1,6 @@
+## 1.0.8
+- Params added to petition.
+
 ## 1.0.7
 - Now the library is using native ping/pong environment.
 

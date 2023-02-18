@@ -8,13 +8,22 @@ import 'package:websocket_ping_validator/utilities/properties.dart';
 
 abstract class WebsocketPingValidator {
   static Future<WebSocket> connectWebSocket(final String url,
-      {required final WebSocketPingValidatorProperties properties}) async {
+      {required final WebSocketPingValidatorProperties properties,
+      final Iterable<String>? protocols,
+      final Map<String, dynamic>? headers,
+      final CompressionOptions compression =
+          CompressionOptions.compressionDefault,
+      final HttpClient? customClient}) async {
     if (!properties.validateIfCanMakeConnection) {
       throw ErrorStatusCode.validateIfCanMakeConnectionUnfulfilled;
     }
 
     try {
-      final webSocketConnection = await WebSocket.connect(url);
+      final webSocketConnection = await WebSocket.connect(url,
+          protocols: protocols,
+          headers: headers,
+          compression: compression,
+          customClient: customClient);
 
       webSocketConnection.pingInterval = properties.periodicDurationToMakePing;
 
