@@ -18,8 +18,10 @@ abstract class WebsocketPingValidator {
       throw ErrorStatusCode.validateIfCanMakeConnectionUnfulfilled;
     }
 
+    late WebSocket webSocketConnection;
+
     try {
-      final webSocketConnection = await WebSocket.connect(url,
+      webSocketConnection = await WebSocket.connect(url,
           protocols: protocols,
           headers: headers,
           compression: compression,
@@ -53,11 +55,18 @@ abstract class WebsocketPingValidator {
           return;
         }
         if (properties.onConnectionClosed != null) {
-          await properties.onConnectionClosed!(closeCode);
+          await properties.onConnectionClosed!(
+              closeCode, webSocketConnection.closeReason);
         }
       }, cancelOnError: true);
       return webSocketConnection;
     } catch (error) {
+      try {
+        await webSocketConnection.close(
+            WebSocketStatus.abnormalClosure, error.toString());
+      } catch (error) {
+        ///ignore
+      }
       if (properties.onError != null) {
         await properties.onError!(error);
       }

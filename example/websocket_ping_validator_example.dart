@@ -36,7 +36,7 @@ void main() async {
           onConnected: (dateTimeConnected) async {
             ///WEBSOCKET CONNECTED (YOU RECEIVE THE SPECIFIC DateTime WHEN THE CONNECTION OCCURRED)
           },
-          onConnectionClosed: (statusCode) async {
+          onConnectionClosed: (statusCode, closeReason) async {
             ///WEBSOCKET DISCONNECTED (YOU RECEIVE THE SPECIFIC StatusCode IN int WHEN THE DISCONNECTION OCCURRED)
           },
           onConnectionLost: () async {

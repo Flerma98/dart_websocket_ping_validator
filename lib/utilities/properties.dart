@@ -4,7 +4,7 @@ class WebSocketPingValidatorProperties {
   final Function(dynamic) onMessage;
   final Function(DateTime)? onConnected;
   final Function(Object)? onError;
-  final Function(int)? onConnectionClosed;
+  final Function(int, String?)? onConnectionClosed;
   final Function? onConnectionLost;
   final Function(Duration)? onReconnectStarted;
   final Function(WebSocket) onNewInstanceCreated;

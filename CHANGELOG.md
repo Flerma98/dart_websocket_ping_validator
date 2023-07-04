@@ -1,3 +1,6 @@
+## 1.0.9
+- Close reason returned and more validations on error.
+
 ## 1.0.8
 - Params added to petition.
 
