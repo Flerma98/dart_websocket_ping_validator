@@ -1,3 +1,6 @@
+## 1.1.0
+- With more validations in close.
+
 ## 1.0.9
 - Close reason returned and more validations on error.
 

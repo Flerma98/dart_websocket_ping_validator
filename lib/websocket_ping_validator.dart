@@ -37,18 +37,30 @@ abstract class WebsocketPingValidator {
           await properties.onError!(error);
         }
         if (properties.reconnectOnError) {
+          try {
+            await webSocketConnection.close(
+                WebSocketStatus.abnormalClosure, error.toString());
+          } catch (error) {
+            ///ignore
+          }
           await _reconnect(url, properties: properties);
         }
       }, onDone: () async {
         final closeCode =
             webSocketConnection.closeCode ?? WebSocketStatus.normalClosure;
+
+        try {
+          await webSocketConnection.close(
+              closeCode, webSocketConnection.closeReason);
+        } catch (error) {
+          ///ignore
+        }
+
         if (properties.reconnectOnConnectionLost &&
             closeCode == WebSocketStatus.goingAway) {
           if (properties.onConnectionLost != null) {
             await properties.onConnectionLost!();
           }
-
-          await webSocketConnection.close();
 
           await properties.onNewInstanceCreated(
               await _reconnect(url, properties: properties));
