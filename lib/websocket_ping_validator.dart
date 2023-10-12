@@ -43,7 +43,12 @@ abstract class WebsocketPingValidator {
           } catch (error) {
             ///ignore
           }
-          await _reconnect(url, properties: properties);
+          await _reconnect(url,
+              properties: properties,
+              protocols: protocols,
+              headers: headers,
+              compression: compression,
+              customClient: customClient);
         }
       }, onDone: () async {
         final closeCode =
@@ -62,8 +67,12 @@ abstract class WebsocketPingValidator {
             await properties.onConnectionLost!();
           }
 
-          await properties.onNewInstanceCreated(
-              await _reconnect(url, properties: properties));
+          await properties.onNewInstanceCreated(await _reconnect(url,
+              properties: properties,
+              protocols: protocols,
+              headers: headers,
+              compression: compression,
+              customClient: customClient));
           return;
         }
         if (properties.onConnectionClosed != null) {
@@ -83,18 +92,32 @@ abstract class WebsocketPingValidator {
         await properties.onError!(error);
       }
       if (properties.reconnectOnError) {
-        return await _reconnect(url, properties: properties);
+        return await _reconnect(url,
+            properties: properties,
+            protocols: protocols,
+            headers: headers,
+            compression: compression,
+            customClient: customClient);
       }
       rethrow;
     }
   }
 
   static Future<WebSocket> _reconnect(final String url,
-      {required final WebSocketPingValidatorProperties properties}) async {
+      {required final WebSocketPingValidatorProperties properties,
+      required final Iterable<String>? protocols,
+      required final Map<String, dynamic>? headers,
+      required final CompressionOptions compression,
+      required final HttpClient? customClient}) async {
     if (properties.onReconnectStarted != null) {
       await properties.onReconnectStarted!(properties.reconnectIn);
     }
     await Future.delayed(properties.reconnectIn);
-    return await connectWebSocket(url, properties: properties);
+    return await connectWebSocket(url,
+        properties: properties,
+        protocols: protocols,
+        headers: headers,
+        compression: compression,
+        customClient: customClient);
   }
 }

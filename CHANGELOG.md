@@ -1,3 +1,6 @@
+## 1.1.1
+- All parameters has been reused.
+
 ## 1.1.0
 - With more validations in close.
 
