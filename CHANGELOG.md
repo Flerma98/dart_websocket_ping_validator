@@ -1,3 +1,6 @@
+## 1.1.3
+- Functions changed to async.
+
 ## 1.1.2
 - Functions has been implemented on a bool values.
 

@@ -8,11 +8,11 @@ class WebSocketPingValidatorProperties {
   final void Function()? onConnectionLost;
   final void Function(Duration)? onReconnectStarted;
   final void Function(WebSocket) onNewInstanceCreated;
-  final bool Function() reconnectOnError;
-  final bool Function() reconnectOnConnectionLost;
+  final Future<bool> Function() reconnectOnError;
+  final Future<bool> Function() reconnectOnConnectionLost;
   final Duration periodicDurationToMakePing;
   final Duration reconnectIn;
-  final bool Function() validateIfCanMakeConnection;
+  final Future<bool> Function() validateIfCanMakeConnection;
 
   WebSocketPingValidatorProperties({
     required this.onMessage,
@@ -23,11 +23,12 @@ class WebSocketPingValidatorProperties {
     this.onReconnectStarted,
     required this.onNewInstanceCreated,
     required this.reconnectOnError,
-    final bool Function()? reconnectOnConnectionLost,
+    final Future<bool> Function()? reconnectOnConnectionLost,
     this.periodicDurationToMakePing = const Duration(seconds: 5),
     this.reconnectIn = const Duration(seconds: 3),
-    final bool Function()? validateIfCanMakeConnection,
-  })  : reconnectOnConnectionLost = reconnectOnConnectionLost ?? (() => true),
+    final Future<bool> Function()? validateIfCanMakeConnection,
+  })  : reconnectOnConnectionLost =
+            reconnectOnConnectionLost ?? (() async => true),
         validateIfCanMakeConnection =
-            validateIfCanMakeConnection ?? (() => true);
+            validateIfCanMakeConnection ?? (() async => true);
 }

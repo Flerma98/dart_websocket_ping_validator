@@ -10,7 +10,7 @@ abstract class WebsocketPingValidator {
   static Future<WebSocket> connectWebSocket(
       final Future<WebSocket> Function() webSocket,
       {required final WebSocketPingValidatorProperties properties}) async {
-    if (!properties.validateIfCanMakeConnection()) {
+    if (!(await properties.validateIfCanMakeConnection())) {
       throw ErrorStatusCode.validateIfCanMakeConnectionUnfulfilled;
     }
 
@@ -28,7 +28,7 @@ abstract class WebsocketPingValidator {
         if (properties.onError != null) {
           properties.onError!(error);
         }
-        if (properties.reconnectOnError()) {
+        if (await properties.reconnectOnError()) {
           try {
             await webSocketConnection.close(
                 WebSocketStatus.abnormalClosure, error.toString());
@@ -48,7 +48,7 @@ abstract class WebsocketPingValidator {
           ///ignore
         }
 
-        if (properties.reconnectOnConnectionLost() &&
+        if (await properties.reconnectOnConnectionLost() &&
             closeCode == WebSocketStatus.goingAway) {
           if (properties.onConnectionLost != null) {
             properties.onConnectionLost!();
@@ -74,7 +74,7 @@ abstract class WebsocketPingValidator {
       if (properties.onError != null) {
         properties.onError!(error);
       }
-      if (properties.reconnectOnError()) {
+      if (await properties.reconnectOnError()) {
         return await _reconnect(webSocket, properties: properties);
       }
       rethrow;
