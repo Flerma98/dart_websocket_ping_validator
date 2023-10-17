@@ -14,7 +14,8 @@ abstract class WebsocketPingValidator {
       throw ErrorStatusCode.validateIfCanMakeConnectionUnfulfilled;
     }
 
-    late WebSocket webSocketConnection;
+    late final WebSocket webSocketConnection;
+    late final StreamSubscription subscription;
 
     try {
       webSocketConnection = await webSocket();
@@ -24,7 +25,9 @@ abstract class WebsocketPingValidator {
       if (properties.onConnected != null) {
         properties.onConnected!(DateTime.now());
       }
-      webSocketConnection.listen(properties.onMessage, onError: (error) async {
+
+      subscription = webSocketConnection.listen(properties.onMessage,
+          onError: (error) async {
         if (properties.onError != null) {
           properties.onError!(error);
         }
@@ -38,7 +41,7 @@ abstract class WebsocketPingValidator {
           await _reconnect(webSocket, properties: properties);
         }
       }, onDone: () async {
-        webSocketConnection.listen((event) {});
+        await subscription.cancel();
 
         final closeCode =
             webSocketConnection.closeCode ?? WebSocketStatus.normalClosure;

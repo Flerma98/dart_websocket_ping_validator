@@ -1,3 +1,6 @@
+## 1.1.5
+- StreamSubscription has been declared.
+
 ## 1.1.4
 - Listeners cleaned.
 
