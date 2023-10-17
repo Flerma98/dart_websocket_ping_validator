@@ -38,6 +38,8 @@ abstract class WebsocketPingValidator {
           await _reconnect(webSocket, properties: properties);
         }
       }, onDone: () async {
+        webSocketConnection.listen((event) {});
+
         final closeCode =
             webSocketConnection.closeCode ?? WebSocketStatus.normalClosure;
 

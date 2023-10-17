@@ -1,3 +1,6 @@
+## 1.1.4
+- Listeners cleaned.
+
 ## 1.1.3
 - Functions changed to async.
 
