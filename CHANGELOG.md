@@ -1,3 +1,6 @@
+## 1.1.2
+- Functions has been implemented on a bool values.
+
 ## 1.1.1
 - All parameters has been reused.
 

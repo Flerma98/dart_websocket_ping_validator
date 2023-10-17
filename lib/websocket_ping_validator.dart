@@ -7,48 +7,35 @@ import 'package:websocket_ping_validator/utilities/error_status_code.dart';
 import 'package:websocket_ping_validator/utilities/properties.dart';
 
 abstract class WebsocketPingValidator {
-  static Future<WebSocket> connectWebSocket(final String url,
-      {required final WebSocketPingValidatorProperties properties,
-      final Iterable<String>? protocols,
-      final Map<String, dynamic>? headers,
-      final CompressionOptions compression =
-          CompressionOptions.compressionDefault,
-      final HttpClient? customClient}) async {
-    if (!properties.validateIfCanMakeConnection) {
+  static Future<WebSocket> connectWebSocket(
+      final Future<WebSocket> Function() webSocket,
+      {required final WebSocketPingValidatorProperties properties}) async {
+    if (!properties.validateIfCanMakeConnection()) {
       throw ErrorStatusCode.validateIfCanMakeConnectionUnfulfilled;
     }
 
     late WebSocket webSocketConnection;
 
     try {
-      webSocketConnection = await WebSocket.connect(url,
-          protocols: protocols,
-          headers: headers,
-          compression: compression,
-          customClient: customClient);
+      webSocketConnection = await webSocket();
 
       webSocketConnection.pingInterval = properties.periodicDurationToMakePing;
 
       if (properties.onConnected != null) {
-        await properties.onConnected!(DateTime.now());
+        properties.onConnected!(DateTime.now());
       }
       webSocketConnection.listen(properties.onMessage, onError: (error) async {
         if (properties.onError != null) {
-          await properties.onError!(error);
+          properties.onError!(error);
         }
-        if (properties.reconnectOnError) {
+        if (properties.reconnectOnError()) {
           try {
             await webSocketConnection.close(
                 WebSocketStatus.abnormalClosure, error.toString());
           } catch (error) {
             ///ignore
           }
-          await _reconnect(url,
-              properties: properties,
-              protocols: protocols,
-              headers: headers,
-              compression: compression,
-              customClient: customClient);
+          await _reconnect(webSocket, properties: properties);
         }
       }, onDone: () async {
         final closeCode =
@@ -61,22 +48,18 @@ abstract class WebsocketPingValidator {
           ///ignore
         }
 
-        if (properties.reconnectOnConnectionLost &&
+        if (properties.reconnectOnConnectionLost() &&
             closeCode == WebSocketStatus.goingAway) {
           if (properties.onConnectionLost != null) {
-            await properties.onConnectionLost!();
+            properties.onConnectionLost!();
           }
 
-          await properties.onNewInstanceCreated(await _reconnect(url,
-              properties: properties,
-              protocols: protocols,
-              headers: headers,
-              compression: compression,
-              customClient: customClient));
+          properties.onNewInstanceCreated(
+              await _reconnect(webSocket, properties: properties));
           return;
         }
         if (properties.onConnectionClosed != null) {
-          await properties.onConnectionClosed!(
+          properties.onConnectionClosed!(
               closeCode, webSocketConnection.closeReason);
         }
       }, cancelOnError: true);
@@ -89,35 +72,22 @@ abstract class WebsocketPingValidator {
         ///ignore
       }
       if (properties.onError != null) {
-        await properties.onError!(error);
+        properties.onError!(error);
       }
-      if (properties.reconnectOnError) {
-        return await _reconnect(url,
-            properties: properties,
-            protocols: protocols,
-            headers: headers,
-            compression: compression,
-            customClient: customClient);
+      if (properties.reconnectOnError()) {
+        return await _reconnect(webSocket, properties: properties);
       }
       rethrow;
     }
   }
 
-  static Future<WebSocket> _reconnect(final String url,
-      {required final WebSocketPingValidatorProperties properties,
-      required final Iterable<String>? protocols,
-      required final Map<String, dynamic>? headers,
-      required final CompressionOptions compression,
-      required final HttpClient? customClient}) async {
+  static Future<WebSocket> _reconnect(
+      final Future<WebSocket> Function() webSocket,
+      {required final WebSocketPingValidatorProperties properties}) async {
     if (properties.onReconnectStarted != null) {
-      await properties.onReconnectStarted!(properties.reconnectIn);
+      properties.onReconnectStarted!(properties.reconnectIn);
     }
     await Future.delayed(properties.reconnectIn);
-    return await connectWebSocket(url,
-        properties: properties,
-        protocols: protocols,
-        headers: headers,
-        compression: compression,
-        customClient: customClient);
+    return await connectWebSocket(webSocket, properties: properties);
   }
 }
