@@ -2,7 +2,7 @@ import 'dart:io';
 
 class WebSocketPingValidatorProperties {
   final void Function(dynamic) onMessage;
-  final void Function(DateTime)? onConnected;
+  final void Function(DateTime, WebSocket)? onConnected;
   final void Function(Object)? onError;
   final void Function(int, String?)? onConnectionClosed;
   final void Function()? onConnectionLost;

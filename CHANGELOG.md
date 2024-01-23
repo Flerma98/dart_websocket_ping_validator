@@ -1,3 +1,6 @@
+## 1.1.6
+- OnConnected now has the websocket initialized instance.
+
 ## 1.1.5
 - StreamSubscription has been declared.
 

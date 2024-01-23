@@ -23,7 +23,7 @@ abstract class WebsocketPingValidator {
       webSocketConnection.pingInterval = properties.periodicDurationToMakePing;
 
       if (properties.onConnected != null) {
-        properties.onConnected!(DateTime.now());
+        properties.onConnected!(DateTime.now(), webSocketConnection);
       }
 
       subscription = webSocketConnection.listen(properties.onMessage,

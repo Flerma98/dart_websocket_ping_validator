@@ -38,7 +38,7 @@ void main() async {
           onMessage: (message) async {
             ///MESSAGE RECEIVED FROM SERVER
           },
-          onConnected: (dateTimeConnected) async {
+          onConnected: (connectedAtTime, webSocketInstance) async {
             ///WEBSOCKET CONNECTED (YOU RECEIVE THE SPECIFIC DateTime WHEN THE CONNECTION OCCURRED)
           },
           onConnectionClosed: (statusCode, closeReason) async {
